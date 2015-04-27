@@ -1,5 +1,8 @@
 package com.github.heussd.owlsearch;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.lucene.document.Document;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
@@ -11,36 +14,41 @@ import org.rssowl.core.internal.persist.News;
 
 import com.db4o.Db4o;
 import com.db4o.ObjectContainer;
+import com.github.heussd.owlsearch.object.NewsItem;
 
 public class OwlSearch {
 
-	public static void main(String[] args) throws Exception {
+	private String rssOwlFolder = System.getProperty("user.home") + "/.rssowl2/.metadata/.plugins/org.rssowl.core/";
+	private FSDirectory fsDirectory;
+	ObjectContainer db;
 
-		String rssOwlFolder = "org.rssowl.core/";
-
-		final ObjectContainer db = Db4o.openFile(rssOwlFolder + "/rssowl.db");
+	public void initialize() throws Exception {
+		db = Db4o.openFile(rssOwlFolder + "rssowl.db");
 		db.ext().configure().readOnly(true);
 
-		FSDirectory fsDirectory = FSDirectory.getDirectory(rssOwlFolder);
+		fsDirectory = FSDirectory.getDirectory(rssOwlFolder);
+	}
+
+	public List<NewsItem> search(String queryString) throws Exception {
+		ArrayList<NewsItem> newsItems = new ArrayList<>();
 
 		QueryParser queryParser = RssOwlInternals.getQueryParser();
-		org.apache.lucene.search.Query query = queryParser.parse("microsoft windows");
+		org.apache.lucene.search.Query query = queryParser.parse(queryString);
 
 		final IndexSearcher indexSearcher = new IndexSearcher(fsDirectory);
 
-		TopDocs topDocs = indexSearcher.search(query, null, 10);
+		TopDocs topDocs = indexSearcher.search(query, null, 20);
 
 		for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
 			Document document = indexSearcher.doc(scoreDoc.doc);
-			System.out.println(scoreDoc.score);
 
 			News news = RssOwlInternals.retrieveNews(db, document);
 			Description description = RssOwlInternals.retrieveDescription(db, document);
 
-			System.out.println(news.getLinkAsText());
-			System.out.println(description.getValue());
+			NewsItem newsItem = new NewsItem(news, description, scoreDoc.score);
+			newsItems.add(newsItem);
 		}
-
+		return newsItems;
 	}
 
 }

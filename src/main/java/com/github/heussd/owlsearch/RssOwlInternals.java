@@ -1,5 +1,7 @@
 package com.github.heussd.owlsearch;
 
+import java.lang.reflect.Field;
+
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.queryParser.QueryParser;
@@ -29,6 +31,7 @@ public class RssOwlInternals {
 	private static final String OWLIDX_FIELD_DESCRIPTION = "2";
 
 	private static final String NEWS_ID_FIELD = "fId";
+	private static final String NEWS_TITLE = "fTitle";
 	private static final String DESCRIPTION_NEWS_REFERENCE = "fNewsId";
 
 	/**
@@ -77,5 +80,16 @@ public class RssOwlInternals {
 
 	public static Description retrieveDescription(ObjectContainer objectContainer, Document document) {
 		return retrieveDescription(objectContainer, new Long(document.get(OWLIDX_OBJ_REFERENCE)));
+	}
+
+	public static String getNewsTitle(News news) {
+		try {
+			Field field = news.getClass().getDeclaredField(NEWS_TITLE);
+			field.setAccessible(true);
+			return (String) field.get(news);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 }

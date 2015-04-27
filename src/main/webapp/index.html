@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en-us"
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+	<title>OwlSearch</title>
+	<link rel="stylesheet" type="text/css" media="all" href="styles.css"/>
+</head>
+<body>
+	<form action="javascript:query(document.getElementById('input').value);">
+		<input id="input" autofocus onkeydown="this.form.submit()" />
+	</form>
+
+	<script src="jquery-2.1.3.min.js"></script>
+	<p class="items">
+	<script>
+		function query(q) {
+			$(".items").empty();
+
+			$.get('search?q=' + q, function (data) {
+		    $(data).find("item").each(function () {
+		        var el = $(this);
+		        var title = el.find("title").text();
+		        if (title != "") {
+			        var link = el.find("link").text();
+			        var description = el.find("description").text();
+
+			        //description = description.substr(0, 400) + "[...]";
+
+			        var result = "<span class='item'><a class='title' href=\"" + link + "\">" +  title + "</a>";
+			        result += "<a class='link' href=\"" + link + "\">" +  link + "</a>";
+
+			        result += "<span class='description'>" + description + "</span></span>";
+			        $(".items").append(result);
+			        
+			    	}
+
+			    	
+				    });
+				});
+			}
+	</script>
+	</p>
+
+</body>
+</html>
